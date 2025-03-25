@@ -77,11 +77,11 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     to_encode = data.copy()
     expire = datetime.utcnow() + (expires_delta or timedelta(minutes=15))
     to_encode.update({"exp": expire})
-    return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)  # Using PyJWT
+    return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
 def get_current_user(db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)):
     try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])  # Using PyJWT
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         username: str = payload.get("sub")
         if username is None:
             raise HTTPException(status_code=401, detail="Invalid token")
@@ -98,16 +98,27 @@ app = FastAPI()
 
 @app.post("/register/")
 def register(username: str, password: str, db: Session = Depends(get_db)):
-    user = User(username=username, hashed_password=get_password_hash(password))
+    hashed_password = get_password_hash(password)
+    user = User(username=username, hashed_password=hashed_password)
     db.add(user)
     db.commit()
     return {"message": "User registered"}
 
 @app.post("/token")
 def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
+    print(f"Login attempt: {form_data.username}")
     user = db.query(User).filter(User.username == form_data.username).first()
-    if not user or not verify_password(form_data.password, user.hashed_password):
+
+    if not user:
+        print("User not found")
         raise HTTPException(status_code=400, detail="Invalid credentials")
+
+    print(f"Stored hashed password: {user.hashed_password}")
+
+    if not verify_password(form_data.password, user.hashed_password):
+        print("Password does not match")
+        raise HTTPException(status_code=400, detail="Invalid credentials")
+
     access_token = create_access_token({"sub": user.username})
     return {"access_token": access_token, "token_type": "bearer"}
 
@@ -116,7 +127,7 @@ def create_task(title: str, description: str, priority: int, db: Session = Depen
     task = Task(title=title, description=description, priority=priority, owner_id=user.id)
     db.add(task)
     db.commit()
-    return task
+    return task, {"message": "Successfully updated task"}
 
 @app.get("/tasks/", response_model=List[TaskResponse])
 def get_tasks(
@@ -145,7 +156,7 @@ def update_task(task_id: int, title: str, description: str, status: TaskStatus, 
     task.status = status
     task.priority = priority
     db.commit()
-    return task
+    return task, {"message": "Successfully updated task"}
 
 @app.delete("/tasks/{task_id}")
 def delete_task(task_id: int, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
