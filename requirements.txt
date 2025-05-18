@@ -1,0 +1,9 @@
+fastapi
+uvicorn
+sqlalchemy
+pydantic
+passlib[bcrypt]
+PyJWT
+pytest
+httpx
+locust

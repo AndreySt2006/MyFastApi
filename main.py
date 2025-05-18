@@ -12,6 +12,7 @@ DATABASE_URL = "sqlite:///./tasks.db"
 SECRET_KEY = "supersecretkey"
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
+app = FastAPI()
 
 Base = declarative_base()
 engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
@@ -94,8 +95,6 @@ def get_current_user(db: Session = Depends(get_db), token: str = Depends(oauth2_
     except jwt.InvalidTokenError:
         raise HTTPException(status_code=401, detail="Invalid token")
 
-app = FastAPI()
-
 @app.post("/register/")
 def register(username: str, password: str, db: Session = Depends(get_db)):
     hashed_password = get_password_hash(password)
@@ -127,6 +126,7 @@ def create_task(title: str, description: str, priority: int, db: Session = Depen
     task = Task(title=title, description=description, priority=priority, owner_id=user.id)
     db.add(task)
     db.commit()
+    db.refresh(task)
     return task, {"message": "Successfully updated task"}
 
 @app.get("/tasks/", response_model=List[TaskResponse])
@@ -156,6 +156,7 @@ def update_task(task_id: int, title: str, description: str, status: TaskStatus, 
     task.status = status
     task.priority = priority
     db.commit()
+    db.refresh(task)
     return task, {"message": "Successfully updated task"}
 
 @app.delete("/tasks/{task_id}")
