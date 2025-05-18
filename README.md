@@ -1,4 +1,3 @@
-
 1) установите зависимости
 ```bash
 pip install -r requirements.txt
@@ -38,3 +37,4 @@ http://localhost:8089
 Number of users: 10
 Spawn rate: 2
 Нажмите "Start swarming"
+Процент покрытия тестами: coverage.txt
