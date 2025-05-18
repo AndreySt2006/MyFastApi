@@ -1,0 +1,16 @@
+============================= test session starts ==============================
+platform darwin -- Python 3.11.0, pytest-8.3.5, pluggy-1.5.0
+rootdir: /Users/andreystewart/PycharmProjects/FastApi
+plugins: anyio-4.9.0, asyncio-0.26.0, cov-6.1.1
+asyncio: mode=Mode.STRICT, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collected 37 items
+
+================================ tests coverage ================================
+_______________ coverage: platform darwin, python 3.11.0-final-0 _______________
+
+Name      Stmts   Miss  Cover   Missing
+---------------------------------------
+main.py     136      1    99%   88
+---------------------------------------
+TOTAL       136      1    99%
+======================= 37 passed, 2 warnings in 12.54s ========================
